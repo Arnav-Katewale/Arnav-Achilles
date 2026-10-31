@@ -40,6 +40,8 @@ The firmware sends one line every ~0.5 s over USB serial at **115200 baud**: 16 
 
 The live maps are drawn as ASCII text in the terminal and redrawn each frame. Coordinates are in millimetres on the forefoot: X = 0 is the big-toe (inner) edge and X = 89 the outer edge. Y = 0 is the ball of the foot and Y = 100 the toe tips.
 
+The early thermal maps used a fixed set of ASCII symbols across a 20–36 °C range, which made sub-degree skin-temperature changes difficult to distinguish. We briefly tested color-coded cells for finer visual separation, but ultimately returned to symbols. In the final RBF tool, the symbol scale dynamically stretches across the current sensor readings, with a minimum 2 °C span, so small local changes remain visible in real time.
+
 ## How it works
 
 The prototype initially used 16 thermistors across both feet. To reduce hardware, we cut the design to eight thermistors—four per foot—while preserving the ability to reconstruct useful spatial temperature patterns. We then evaluated the four-sensor layout more closely: adding the fourth sensor reduced simulated reconstruction error by 45%, while a simulated 3-vs-4 Leave-One-Out comparison showed that the fourth sensor covered a region the other three sensors predicted poorly. The current RBF tool in this repository maps one foot using T1–T4.
