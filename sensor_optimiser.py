@@ -25,10 +25,6 @@ ALL_SENSORS = [
     {"name": "2nd MTH",                "pos": (24,  8)},
     {"name": "4th MTH",                "pos": (56,  8)},
     {"name": "2nd Toe",                "pos": (18, 80)},
-    {"name": "5th Toe",                "pos": (65, 80)},
-    {"name": "Medial\nArch",           "pos": (10, 40)},
-    {"name": "Lateral\nArch",          "pos": (65, 40)},
-    {"name": "Heel\nCentre",           "pos": (40, -25)},
 ]
 
 IDW_POWER    = 2

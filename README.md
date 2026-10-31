@@ -34,13 +34,15 @@ The firmware sends one line every ~0.5 s over USB serial at **115200 baud**: 16 
 |---|---|
 | `launch_monitor.py` | Live terminal monitor of all 16 channels: temperature, a bar-graph level and the change since the previous reading. When run from an IDE it opens its own PowerShell window. |
 | `linear_prediction.py` | 1D linear interpolation along a strip of sensors (positions set in `SENSOR_POSITIONS`, currently 38, 48 and 70 mm from the big-toe reference). Shows 9 evenly spaced estimates per segment. |
-| `ripple_prediction.py` | 2D Inverse Distance Weighting (IDW) map of the forefoot. Shows a 4-sensor layout and a 10-sensor layout side by side, with live Leave-One-Out error for each. |
+| `ripple_prediction.py` | 2D Inverse Distance Weighting (IDW) map of the forefoot. Shows a 3-sensor layout and a 4-sensor layout side by side, with live Leave-One-Out error (mean, worst case and RMS over 30 frames) for each, to measure how much the 4th sensor reduces the residual error. |
 | `Temperature_Prediction.py` | 2D Radial Basis Function (thin-plate spline) map of the right forefoot from 4 sensors (T1–T4), with an auto-scaled display and live Leave-One-Out error. |
-| `sensor_optimiser.py` | Offline Monte Carlo simulation of how IDW map error changes as sensors are added, from 2 to 12. Saves `sensor_optimization_graph.png`. |
+| `sensor_optimiser.py` | Offline Monte Carlo simulation of how IDW map error changes as sensors are added, from 2 to 8. Saves `sensor_optimization_graph.png`. |
 
 The live maps are drawn as ASCII text in the terminal and redrawn each frame. Coordinates are in millimetres on the forefoot: X = 0 is the big-toe (inner) edge and X = 89 the outer edge. Y = 0 is the ball of the foot and Y = 100 the toe tips.
 
 ## How it works
+
+The prototype initially used 16 thermistors across both feet. To reduce hardware, we cut the design to eight thermistors—four per foot—while preserving the ability to reconstruct useful spatial temperature patterns. We then evaluated the four-sensor layout more closely: adding the fourth sensor reduced simulated reconstruction error by 45%, while a simulated 3-vs-4 Leave-One-Out comparison showed that the fourth sensor covered a region the other three sensors predicted poorly. The current RBF tool in this repository maps one foot using T1–T4.
 
 The project went through four approaches, each addressing a limitation of the one before.
 
@@ -63,7 +65,7 @@ The project went through four approaches, each addressing a limitation of the on
 
 ## Sensor layout
 
-Sensors are listed in the priority order used by the simulation. `Temperature_Prediction.py` uses S1–S4 and `ripple_prediction.py` uses S1–S4 and S1–S10.
+`Temperature_Prediction.py` uses S1–S4. `ripple_prediction.py` compares S1–S3 against S1–S4.
 
 | Sensor | Channel | Location | Position (X, Y) mm |
 |---|---|---|---|
@@ -71,12 +73,8 @@ Sensors are listed in the priority order used by the simulation. `Temperature_Pr
 | S2 | T2 | Hallux (big toe) | (5, 93) |
 | S3 | T3 | 5th metatarsal head (outer ball) | (72, 8) |
 | S4 | T4 | 3rd toe centre | (38, 55) |
-| S5 | T5 | 3rd metatarsal head | (40, 8) |
-| S6 | T6 | 2nd metatarsal head | (24, 8) |
-| S7 | T7 | 4th metatarsal head | (56, 8) |
-| S8 | T8 | 2nd toe | (18, 80) |
-| S9 | T9 | 5th toe | (65, 80) |
-| S10 | T10 | Medial arch | (10, 40) |
+
+The simulation adds four more candidate positions after S4, in this order: the 3rd, 2nd and 4th metatarsal heads, then the 2nd toe. Their coordinates are listed in `sensor_optimiser.py`.
 
 ## Simulation results
 
@@ -93,16 +91,12 @@ These are the output of `sensor_optimiser.py` (500 simulated fields per sensor c
 | 6 | 2nd MTH | 0.800 °C | 0.792 °C |
 | 7 | 4th MTH | 0.770 °C | 0.720 °C |
 | 8 | 2nd toe | 0.693 °C | 0.702 °C |
-| 9 | 5th toe | 0.619 °C | 0.658 °C |
-| 10 | Medial arch | 0.471 °C | 0.729 °C |
-| 11 | Lateral arch | 0.360 °C | 0.745 °C |
-| 12 | Heel centre | 0.334 °C | 0.716 °C |
 
 Observations:
 
 - **The 4th sensor (3rd toe centre) gives the largest single improvement.** It cuts reconstruction error by 45%, because it fills the biggest uncovered area in the middle of the forefoot.
 - **A 5th sensor next to the existing ones at the ball slightly increases the error**, because it adds no new coverage.
-- **Lower LOO error does not always mean a more accurate map.** With more sensors, LOO compares close neighbours and picks up real local differences, so it moves differently from the true error.
+- **Lower LOO error does not always mean a more accurate map.** Going from 3 to 4 sensors, LOO error rises from 0.941 °C to 1.260 °C even though the true reconstruction error falls. The 4th sensor sits in the centre of the forefoot, where the other three predict it poorly, and that same gap is why it improves the map.
 
 These results come from a simulated temperature model, not from measurements on real feet.
 
@@ -119,7 +113,7 @@ With the insole's Arduino connected and running the 16-channel firmware, run one
 ```
 python launch_monitor.py          # raw 16-channel monitor
 python linear_prediction.py       # 1D strip interpolation
-python ripple_prediction.py       # IDW map, 4 vs 10 sensors
+python ripple_prediction.py       # IDW map, 3 vs 4 sensors
 python Temperature_Prediction.py  # RBF map, right foot
 ```
 

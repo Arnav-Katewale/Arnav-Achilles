@@ -21,17 +21,11 @@ ALL_SENSORS = [
     {'name': 'S2',  'label': 'Hallux (Big Toe)',      'pos': (5,  93), 'idx': 1},
     {'name': 'S3',  'label': '5th MTH (Outer Ball)',  'pos': (72, 8),  'idx': 2},
     {'name': 'S4',  'label': '3rd Toe Center',        'pos': (38, 55), 'idx': 3},
-    {'name': 'S5',  'label': '3rd MTH (Centre Ball)', 'pos': (40, 8),  'idx': 4},
-    {'name': 'S6',  'label': '2nd MTH',               'pos': (24, 8),  'idx': 5},
-    {'name': 'S7',  'label': '4th MTH',               'pos': (56, 8),  'idx': 6},
-    {'name': 'S8',  'label': '2nd Toe',               'pos': (18, 80), 'idx': 7},
-    {'name': 'S9',  'label': '5th Toe',               'pos': (65, 80), 'idx': 8},
-    {'name': 'S10', 'label': 'Medial Arch',           'pos': (10, 40), 'idx': 9},
 ]
 
-FEW, MANY = 4, 10   # the two layouts compared side by side
+FEW, MANY = 3, 4   # the two layouts compared side by side
 SENSOR_CONFIGS = {FEW: ALL_SENSORS[:FEW], MANY: ALL_SENSORS[:MANY]}
-MAP_LABELS = '123456789X'   # one character per sensor on the map (X = 10)
+MAP_LABELS = '1234'   # one character per sensor on the map
 
 def enable_ansi():
     kernel32 = ctypes.windll.kernel32
@@ -179,7 +173,7 @@ def display(temps_all, frame, mask, err_hist_few, err_hist_many):
     rmsm = math.sqrt(sum(x**2 for e in err_hist_many for x in e) / sum(len(e) for e in err_hist_many))
 
     ln(f"  {'PREDICTION ERROR':^82}")
-    ln(f"  {'':28}  {f'{FEW} Sensors':>12}  {f'{MANY} Sensors':>12}  {f'Benefit of {MANY}':>18}")
+    ln(f"  {'':28}  {f'{FEW} Sensors':>12}  {f'{MANY} Sensors':>12}  {'4th Sensor Benefit':>18}")
     ln(f"  {'-'*76}")
     ln(f"  {'Mean Error  (30-frame avg)':28}  {avgf:>11.3f}C  {avgm:>11.3f}C  {avgf-avgm:>+14.3f}C  {pct_better(avgf, avgm)}")
     ln(f"  {'Worst Case Error':28}  {maxf:>11.3f}C  {maxm:>11.3f}C  {maxf-maxm:>+14.3f}C  {pct_better(maxf, maxm)}")
@@ -188,7 +182,7 @@ def display(temps_all, frame, mask, err_hist_few, err_hist_many):
     ln("  Sensor readings:")
     for i in range(0, MANY, 5):
         ln("    " + "   ".join(f"{s['name']:>3}={temps_all[s['idx']]:.2f}C" for s in sm[i:i+5]))
-    ln(f"  Map: 1-9 = S1-S9, X = S10   |   Ctrl+C to stop")
+    ln(f"  Ctrl+C to stop")
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
